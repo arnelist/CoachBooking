@@ -3,7 +3,7 @@ const colors = {
     card: "#151924",
     cardElevated: "#1b2030",
     border: "#222836",
-    text: "#f7f7f8",
+    text: "#ffffffff",
     muted: "#9ca3b5",
     accent: "#f6c90e",
     accentSoft: "#ffe16a",
