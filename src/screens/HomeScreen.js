@@ -82,7 +82,8 @@ export default function HomeScreen({ navigation }) {
             const q = query(
                 collection(db, 'trainers'),
                 where('gymId', '==', gymId),
-                orderBy('order', 'asc')
+                orderBy('order', 'asc'),
+                where("active", "==", true)
             );
             const snap = await getDocs(q);
             const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));

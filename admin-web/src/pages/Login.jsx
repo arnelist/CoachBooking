@@ -25,7 +25,7 @@ export default function Login() {
         <div className="page">
             <div className="container" style={{ maxWidth: 420 }}>
                 <form onSubmit={submit} className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <h2 style={{ margin: 0 }}>CoachBooking Admin</h2>
+                    <h2 style={{ margin: 0 }}>CoachBooking Admin Panel</h2>
                     <p className="muted" style={{ marginTop: 6 }}>Prisijunk su admin paskyra</p>
 
                     <input

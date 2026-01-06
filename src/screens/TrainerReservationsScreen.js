@@ -13,6 +13,7 @@ import { auth, db } from "../services/firebase";
 import {
     collection,
     getDocs,
+    getDoc,
     query,
     where,
     orderBy,
@@ -37,6 +38,7 @@ export default function TrainerReservationsScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
     const [qrReservation, setQrReservation] = useState(null);
+    const [trainerGym, setTrainerGym] = useState(null);
 
     const { profile } = useMyProfile();
 
@@ -48,6 +50,7 @@ export default function TrainerReservationsScreen({ navigation }) {
     useEffect(() => {
         const loadTrainer = async() => {
             if (!userId) return;
+
             try {
                 setLoadingTrainer(true);
 
@@ -56,11 +59,23 @@ export default function TrainerReservationsScreen({ navigation }) {
 
                 if (snapT.empty) {
                     setTrainerId(null);
+                    setTrainerGym(null);
                     Alert.alert("Klaida", "Nerastas trenerio profilis (trainers.userId");
                     return;
                 }
 
-                setTrainerId(snapT.docs[0].id);
+                const tDoc = snapT.docs[0];
+                const tData = tDoc.data();
+
+                setTrainerId(tDoc.id);
+
+                if (tData.gymId) {
+                    const gSnap = await getDoc(doc(db, "gyms", tData.gymId));
+                    setTrainerGym(gSnap.exists() ? { id: gSnap.id, ...gSnap.data() } : null);
+                } 
+                else {
+                    setTrainerGym(null);
+                }
             }   catch (e) {
                 console.log("LOAD TRAINER ERROR:", e);
                 Alert.alert("Klaida", "Nepavyko užkrauti trenerio profilio.");
@@ -183,6 +198,17 @@ export default function TrainerReservationsScreen({ navigation }) {
 
             <Text style={styles.title}>Mano rezervacijos</Text>
 
+            {trainerGym ? (
+                <View style={styles.gymBox}>
+                    <Text style={styles.gymName}>{trainerGym.pavadinimas}</Text>
+                    {trainerGym.adresas ? (
+                    <Text style={styles.gymAddr}>Adresas: {trainerGym.adresas}</Text>
+                    ) : null}
+                </View>
+                ) : (
+                <Text style={styles.mutedSmall}>Gym nepriskirtas (paprašyk admino priskirti).</Text>
+            )}
+
             {loading ? (
                 <View style={{ paddingTop: 24 }}>
                     <ActivityIndicator color={colors.accent} />
@@ -210,7 +236,7 @@ export default function TrainerReservationsScreen({ navigation }) {
                                             {item.date ?? "-"} • {item.start ?? "--:--"}–{item.end ?? "--:--"}
                                         </Text>
                                         <Text style={styles.meta}>
-                                            {whoName || "—"} {whoEmail ? `(${whoEmail})` : ""}
+                                            {whoName || "-"} {whoEmail ? `(${whoEmail})` : ""}
                                         </Text>
                                         <View style={styles.statusRow}>
                                             <Text style={styles.meta}>Statusas: {statusLt}</Text>
@@ -232,7 +258,7 @@ export default function TrainerReservationsScreen({ navigation }) {
                                             >
                                                 <Text style={styles.btnText}>Patvirtinti</Text>
                                             </Pressable>
-
+                                        
                                             <Pressable
                                                 disabled={isBusy}
                                                 style={[styles.btn, isBusy && { opacity: 0.6 }]}
@@ -412,5 +438,32 @@ const styles = StyleSheet.create({
         color: colors.text,
         fontWeight: "900",
         fontSize: 12,
+    },
+    gymBox: {
+        marginTop: 8,
+        marginBottom: 10,
+        padding: 12,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.04)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+    },
+    gymName: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "white",
+    },
+    gymAddr: {
+        marginTop: 4,
+        fontSize: 13,
+        opacity: 0.8,
+        color: "white",
+    },
+    mutedSmall: {
+        marginTop: 6,
+        marginBottom: 10,
+        fontSize: 13,
+        opacity: 0.7,
+        color: "white",
     },
 });

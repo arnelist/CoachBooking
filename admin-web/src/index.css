@@ -66,3 +66,22 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+select.input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 12px;
+  outline: none;
+}
+
+select.input:focus{
+  border-color: #555;
+}
+
+select.input option{
+  background: #2e2e2e;
+  color: #fff;
+}
