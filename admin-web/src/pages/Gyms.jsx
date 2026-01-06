@@ -215,7 +215,7 @@ export default function Gyms() {
                     </label>
 
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <span className="muted">Order</span>
+                        <span className="muted">Eiliškumas</span>
                         <input
                             className="input"
                             type="number"

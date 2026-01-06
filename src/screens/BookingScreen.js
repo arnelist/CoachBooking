@@ -15,6 +15,7 @@ import {
   where,
   orderBy,
   addDoc,
+  getDoc,
   serverTimestamp,
   doc,
   updateDoc,
@@ -69,6 +70,7 @@ export default function BookingScreen({ route, navigation }) {
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(true);
     const [bookingSlotId, setBookingSlotId] = useState(null);
+    const [trainer, setTrainer] = useState(null);
 
     useEffect(() => {
         (async () => {
@@ -106,6 +108,27 @@ export default function BookingScreen({ route, navigation }) {
         loadSlots();
     }, [trainerId, selectedDateStr]);
 
+    useEffect(() => {
+        if (!trainerId) return;
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+            const tSnap = await getDoc(doc(db, "trainers", trainerId));
+            const t = tSnap.exists() ? { id: tSnap.id, ...tSnap.data() } : null;
+            if (!cancelled) setTrainer(t);
+            } catch (e) {
+            console.log("LOAD TRAINER ERROR:", e);
+            if (!cancelled) setTrainer(null);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [trainerId]);
+
     const onBook = async (slot) => {
         if (!userId) {
             Alert.alert("Klaida", "Nėra prisijungusio naudotojo.");
@@ -116,15 +139,28 @@ export default function BookingScreen({ route, navigation }) {
         try {
             setBookingSlotId(slot.id);
 
+            const mySnap = await getDoc(doc(db, "users", userId));
+            const myProfile = mySnap.exists() ? mySnap.data() : null;
+
             await addDoc(collection(db, "reservations"), {
                 userId,
                 trainerId,
+                trainerUserId: trainer?.userId ?? null,
+
                 gymId: gymId ?? null,
                 slotId: slot.id,
 
                 date: slot.date,
                 start: slot.start,
                 end: slot.end,
+
+                clientVardas: myProfile?.vardas ?? "",
+                clientPavarde: myProfile?.pavarde ?? "",
+                clientEmail: myProfile?.email ?? auth.currentUser?.email ?? "",
+
+                trainerVardas: trainer?.vardas ?? "",
+                trainerPavarde: trainer?.pavarde ?? "",
+                trainerEmail: trainer?.email ?? "",
 
                 status: 'pending',
                 createdAt: serverTimestamp(),

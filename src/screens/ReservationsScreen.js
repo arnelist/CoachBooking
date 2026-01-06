@@ -103,12 +103,18 @@ export default function ReservationsScreen({ navigation }) {
         const statusLt = RESERVATION_STATUS_LT[item.status] ?? item.status ?? '';
         const canCancel = item.status === 'pending';
         const isCancelling = cancellingId === item.id;
+            
+        const whoName = [item.trainerVardas, item.trainerPavarde].filter(Boolean).join(" ");
+        const whoEmail = item.trainerEmail;
 
         return (
             <View style={styles.card}>
                 <View style={{ flex: 1 }}>
                     <Text style={styles.time}>
                         {item.date ?? '-'} • {item.start ?? "--:--"}–{item.end ?? "--:--"}
+                    </Text>
+                    <Text style={styles.meta}>
+                        {whoName || "-"} {whoEmail ? `(${whoEmail})` : ""}
                     </Text>
                     <View style={styles.statusRow}>
                         <Text style={styles.meta}>Statusas: {statusLt}</Text>

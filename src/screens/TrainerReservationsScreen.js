@@ -25,6 +25,7 @@ import colors from "../theme/colors";
 import { Modal } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { buildCheckinQrValue } from "../utils/qr";
+import { useMyProfile } from "../hooks/useMyProfile";
 
 export default function TrainerReservationsScreen({ navigation }) {
     const userId = auth.currentUser?.uid;
@@ -36,6 +37,13 @@ export default function TrainerReservationsScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
     const [qrReservation, setQrReservation] = useState(null);
+
+    const { profile } = useMyProfile();
+
+    const helloName =
+        profile?.vardas?.trim() ||
+        auth.currentUser?.email?.split("@")?.[0] ||
+        "";
 
     useEffect(() => {
         const loadTrainer = async() => {
@@ -164,6 +172,9 @@ export default function TrainerReservationsScreen({ navigation }) {
 
     return (
         <AnimatedScreen style={styles.screen}>
+            
+            <Text style={styles.pageTitle}>{helloName ? `Labas, ${helloName}! 👋` : "Labas! 👋"}</Text>
+
             <View style={styles.topBar}>
                 <Text numberOfLines={1} style={styles.userEmail}>
                     {auth.currentUser?.email ?? ''}
@@ -187,13 +198,19 @@ export default function TrainerReservationsScreen({ navigation }) {
                         }
                         renderItem={({ item }) => {
                             const isBusy = processingId === item.id;
-                            const statusLt = RESERVATION_STATUS_LT[item.status] ?? item.status;   
+                            const statusLt = RESERVATION_STATUS_LT[item.status] ?? item.status; 
+                            
+                            const whoName = [item.clientVardas, item.clientPavarde].filter(Boolean).join(" ");
+                            const whoEmail = item.clientEmail;
                         
                             return (
                                 <View style={styles.card}>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.time}>
                                             {item.date ?? "-"} • {item.start ?? "--:--"}–{item.end ?? "--:--"}
+                                        </Text>
+                                        <Text style={styles.meta}>
+                                            {whoName || "—"} {whoEmail ? `(${whoEmail})` : ""}
                                         </Text>
                                         <View style={styles.statusRow}>
                                             <Text style={styles.meta}>Statusas: {statusLt}</Text>
@@ -294,8 +311,8 @@ export default function TrainerReservationsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 12 },
-    topBar: { paddingTop: 30, paddingBottom: 12, flexDirection: "row", alignItems: "center", gap: 10 },
+    screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 30 },
+    topBar: { paddingBottom: 12, flexDirection: "row", alignItems: "center", gap: 10 },
     userEmail: { flex: 1, color: colors.muted, fontSize: 12 },
     topActions: { flexDirection: "row", gap: 8 },
     title: { fontSize: 22, fontWeight: "900", marginTop: 4, marginBottom: 12, color: colors.text },
@@ -310,6 +327,13 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
         gap: 10,
     },
+    pageTitle: {
+        fontSize: 22,
+        fontWeight: "800",
+        marginTop: 4,
+        marginBottom: 12,
+        color: colors.text,
+    },  
     time: { fontWeight: "900", color: colors.text },
     meta: { marginTop: 6, fontSize: 12, color: colors.muted },
     actions: { gap: 8 },

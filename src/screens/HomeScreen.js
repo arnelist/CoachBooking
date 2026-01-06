@@ -15,6 +15,7 @@ import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
 import AnimatedScreen from "../components/AnimatedScreen";
 import colors from "../theme/colors";
+import { useMyProfile } from "../hooks/useMyProfile";
 
 export default function HomeScreen({ navigation }) {
     const userEmail = auth.currentUser?.email ?? '';
@@ -25,6 +26,13 @@ export default function HomeScreen({ navigation }) {
     const [expandedGymIds, setExpandedGymIds] = useState(() => new Set());
     const [trainersByGym, setTrainersByGym] = useState({});
     const [loadingTrainersGymId, setLoadingTrainersGymId] = useState({});
+
+    const { profile } = useMyProfile();
+
+    const helloName =
+        profile?.vardas?.trim() ||
+        auth.currentUser?.email?.split("@")?.[0] ||
+        "";
 
     useEffect(() => {
         if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -76,7 +84,6 @@ export default function HomeScreen({ navigation }) {
                 where('gymId', '==', gymId),
                 orderBy('order', 'asc')
             );
-
             const snap = await getDocs(q);
             const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             setTrainersByGym((prev) => ({ ...prev, [gymId]: list }));
@@ -95,7 +102,8 @@ export default function HomeScreen({ navigation }) {
         return (
             <View key={trainer.id} style={styles.trainerRow}>
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.trainerName}>{trainer.vardas || "Treneris"}</Text>
+                    <Text style={styles.trainerName}>{trainer.vardas + " " + trainer.pavarde || "Treneris"}</Text>
+                    <Text style={styles.trainerSpec}>{trainer.email || ""}</Text>
                     <Text style={styles.trainerSpec}>{trainer.specializacija || ""}</Text>
                 </View>
 
@@ -170,13 +178,14 @@ export default function HomeScreen({ navigation }) {
 
     return (
         <AnimatedScreen style={styles.screen}>
+            
+            <Text style={styles.pageTitle}>{helloName ? `Labas, ${helloName}! 👋` : "Labas! 👋"}</Text>
+
             <View style={styles.topBar}>
                 <Text numberOfLines={1} style={styles.userEmail}>
                     {userEmail}
                 </Text>
             </View>
-
-            <Text style={styles.pageTitle}>Sporto salės</Text>
 
             <View style={styles.expandRow}>
                 <Pressable style={styles.outlineBtn} onPress={expandAll}>
@@ -226,7 +235,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 30 },
     topBar: {
-        paddingTop: 30,
         paddingBottom: 12,
         flexDirection: "row",
         alignItems: "center",

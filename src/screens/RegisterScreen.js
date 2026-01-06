@@ -14,14 +14,17 @@ import AnimatedScreen from "../components/AnimatedScreen";
 import colors from "../theme/colors";
 
 export default function RegisterScreen({ navigation }) {
+    
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
     const onRegister = async () => {
         const e = email.trim().toLowerCase();
-        if (!e || !password) {
-            Alert.alert("Klaida", "Įvesk el. paštą ir slaptažodį.");
+        if (!e || !password || !name || !surname) {
+            Alert.alert("Klaida", "Peržiūrėkite, ar įvedėte visus duomenis.");
             return;
         }
 
@@ -31,6 +34,8 @@ export default function RegisterScreen({ navigation }) {
             const cred = await createUserWithEmailAndPassword(auth, e, password);
 
             await setDoc(doc(db, 'users', cred.user.uid), {
+                vardas: name.trim(),
+                pavarde: surname.trim(),
                 email: e,
                 role: "client",
                 createdAt: serverTimestamp(),
@@ -48,6 +53,24 @@ export default function RegisterScreen({ navigation }) {
     return (
         <AnimatedScreen style={styles.container}>
             <Text style={styles.title}>Registracija</Text>
+
+            <View style={styles.row}>
+              <TextInput
+                style={styles.halfInput}
+                placeholder="Vardas"
+                autoCapitalize="words"
+                value={name}
+                onChangeText={setName}
+              />
+
+              <TextInput
+                  style={styles.halfInput}
+                  placeholder="Pavardė"
+                  autoCapitalize="words"
+                  value={surname}
+                  onChangeText={setSurname}
+              />
+            </View>
 
             <TextInput
                 style={styles.input}
@@ -97,6 +120,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
     color: colors.text,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  halfInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.inputBg,
+    color: colors.text,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
   },
   input: {
     borderWidth: 1,
